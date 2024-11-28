@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sistema Médico</title>
+  <script src="script.js" defer></script>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+</head>
+<body class="bg-gradient-to-br from-blue-100 to-blue-300 font-sans flex flex-col min-h-screen">
+
+<header class="w-full p-4 bg-white shadow-md flex justify-between items-center fixed top-0 left-0 right-0 z-10">
+  <h1 class="text-2xl font-extrabold text-blue-600">Sistema Médico</h1>
+  <button
+          onclick="window.location.href='cadastro.html'"
+          class="bg-blue-500 text-white py-2 px-4 rounded-lg hover:bg-blue-600 transition-transform transform hover:scale-105">
+    Cadastro/Login
+  </button>
+</header>
+
+<main class="flex flex-grow justify-center items-center mt-20">
+  <div class="bg-white p-8 rounded-lg shadow-xl w-96">
+    <h1 class="text-3xl font-extrabold text-blue-600 mb-6 text-center">Bem-vindo</h1>
+    <p class="text-gray-600 text-center mb-8">Escolha o tipo de atendimento:</p>
+    <div class="space-y-4">
+
+      <button id="btnConsulta" class="block w-full bg-blue-500 text-white py-3 px-5 rounded-lg hover:bg-blue-600 transition-transform transform hover:scale-105 shadow-md">
+        Consulta
+      </button>
+      <button id="btnEmergencia" class="block w-full bg-red-500 text-white py-3 px-5 rounded-lg hover:bg-red-600 transition-transform transform hover:scale-105 shadow-md">
+        Emergência
+      </button>
+      <button id="btnColeta" class="block w-full bg-green-500 text-white py-3 px-5 rounded-lg hover:bg-green-600 transition-transform transform hover:scale-105 shadow-md">
+        Coleta
+      </button>
+    </div>
+  </div>
+</main>
+
+<footer class="bg-blue-600 text-white py-4 mt-6 text-center">
+  <p>&copy; 2024 Sistema Médico. Todos os direitos reservados.</p>
+</footer>
+
+<script>
+  document.getElementById("btnConsulta").addEventListener("click", async () => {
+    const response = await fetch("/api/atendimento/consulta", { method: "POST" });
+    if (response.ok) {
+      alert("Paciente adicionado à fila de consulta.");
+    }
+  });
+
+  document.getElementById("btnEmergencia").addEventListener("click", async () => {
+    const response = await fetch("/api/atendimento/emergencia", { method: "POST" });
+    if (response.ok) {
+      alert("Paciente adicionado à fila de emergência.");
+    }
+  });
+
+  document.getElementById("btnColeta").addEventListener("click", async () => {
+    const response = await fetch("/api/atendimento/coleta", { method: "POST" });
+    if (response.ok) {
+      alert("Paciente adicionado à fila de coleta.");
+    }
+  });
+</script>
+</body>
+</html>

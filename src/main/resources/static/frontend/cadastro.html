@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cadastro - Médico</title>
+  <script defer>
+    document.addEventListener("DOMContentLoaded", () => {
+      const formCadastro = document.getElementById("formCadastro");
+      formCadastro.addEventListener("submit", async (event) => {
+        event.preventDefault(); // Previne o comportamento padrão de redirecionamento
+
+        const formData = {
+          nome: document.getElementById("nome").value,
+          crm: document.getElementById("crm").value,
+          email: document.getElementById("email").value,
+          senha: document.getElementById("senha").value
+        };
+
+        try {
+          const response = await fetch("/api/medicos/cadastrar", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(formData)
+          });
+
+          if (response.ok) {
+            alert("Cadastro realizado com sucesso!");
+            window.location.href = "login.html"; // Redireciona para a página de login
+          } else {
+            const errorData = await response.json();
+            alert(`Erro: ${errorData.message || "Falha no cadastro."}`);
+          }
+        } catch (error) {
+          console.error("Erro ao enviar dados:", error);
+          alert("Ocorreu um erro ao tentar realizar o cadastro.");
+        }
+      });
+    });
+  </script>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+</head>
+<body class="bg-gradient-to-br from-blue-100 to-blue-300">
+
+<header class="w-full p-4 bg-white shadow-md flex justify-between items-center fixed top-0 left-0 right-0 z-10">
+  <h1 class="text-2xl font-extrabold text-blue-600">Sistema Médico</h1>
+  <button
+          onclick="window.location.href='index.html'"
+          class="bg-blue-500 text-white py-2 px-4 rounded-lg hover:bg-blue-600 transition-transform transform hover:scale-105">
+    Home
+  </button>
+</header>
+
+<main class="flex justify-center items-center h-screen">
+  <div class="bg-white p-8 rounded-lg shadow-2xl w-96">
+    <h1 class="text-3xl font-extrabold text-blue-600 mb-6 text-center">Cadastro Médico</h1>
+    <form id="formCadastro">
+      <div class="space-y-4">
+        <div>
+          <label for="nome" class="block text-gray-700 font-bold">Nome Completo</label>
+          <input type="text" id="nome" name="nome" class="w-full p-3 border border-gray-300 rounded-lg" required>
+        </div>
+        <div>
+          <label for="crm" class="block text-gray-700 font-bold">CRM</label>
+          <input type="text" id="crm" name="crm" class="w-full p-3 border border-gray-300 rounded-lg" required>
+        </div>
+        <div>
+          <label for="email" class="block text-gray-700 font-bold">E-mail</label>
+          <input type="email" id="email" name="email" class="w-full p-3 border border-gray-300 rounded-lg" required>
+        </div>
+        <div>
+          <label for="senha" class="block text-gray-700 font-bold">Senha</label>
+          <input type="password" id="senha" name="senha" class="w-full p-3 border border-gray-300 rounded-lg" required>
+        </div>
+      </div>
+      <button type="submit" class="w-full bg-blue-500 text-white py-3 px-5 rounded-lg hover:bg-blue-600 mt-6 transition-transform transform hover:scale-105 shadow-md">
+        Cadastrar
+      </button>
+    </form>
+    <p class="mt-4 text-center text-gray-600">Já tem uma conta? <a href="login.html" class="text-blue-600">Login</a></p>
+  </div>
+</main>
+
+<footer class="bg-blue-600 text-white py-4 mt-6 text-center">
+  <p>&copy; 2024 Sistema Médico. Todos os direitos reservados.</p>
+</footer>
+
+</body>
+</html>

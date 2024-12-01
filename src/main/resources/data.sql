@@ -30,8 +30,4 @@ INSERT INTO atendimento (tipo_atendimento, descricao) VALUES
     ('emergencia', 'Atendimento para situações de emergência'),
     ('coleta', 'Coleta de exames laboratoriais');
 
--- Inserção de médicos como exemplo
-INSERT INTO medico (nome, crm, email, senha, disponivel) VALUES
-    ('Dr. João Silva', '123456', 'joao.silva@hospital.com', 'senha123', TRUE),
-    ('Dra. Maria Oliveira', '789012', 'maria.oliveira@hospital.com', 'senha456', TRUE),
-    ('Dr. Pedro Santos', '345678', 'pedro.santos@hospital.com', 'senha789', FALSE);
+

@@ -12,6 +12,16 @@ import java.util.Optional;
 
 @Repository
 public interface PacienteRepository extends JpaRepository<Paciente, Long> {
+    @Query("SELECT p.numeroPaciente FROM Paciente p")
+    List<String> findAllNumeroPaciente();
+
+    /**
+     * Encontra o primeiro paciente de um tipo específico de atendimento, ordenado pela posição na fila (decrescente).
+     *
+     * @param tipoAtendimento Tipo de atendimento ("emergencia", "consulta", "coleta").
+     * @return Paciente correspondente, se encontrado.
+     */
+    Optional<Paciente> findFirstByTipoAtendimentoOrderByPosicaoNaFilaDesc(String tipoAtendimento);
     List<Paciente> findAllByOrderByPosicaoNaFilaAsc();
     List<Paciente> findByTipoAtendimento(String tipoAtendimento, Sort sort);
     Optional<Paciente> findFirstByTipoAtendimento(String tipoAtendimento);

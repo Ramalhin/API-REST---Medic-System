@@ -52,9 +52,27 @@
 <footer class="bg-blue-600 text-white py-4 mt-6 text-center">
   <p>&copy; 2024 Sistema Médico. Todos os direitos reservados.</p>
 </footer>
+<script>
+    function carregarDados() {
+    fetch('/api/atendimento/dados', { method: 'GET' })
+        .then(response => response.json())
+        .then(data => {
+            // Atualizar o número atual
+            document.getElementById('numeroAtual').textContent = data.numeroAtual || "N/A";
 
-<!-- Inclua o JavaScript externo -->
-<script src="/frontend/js/fila_espera.js"></script>
+            // Atualizar a situação atual
+            document.getElementById('situacaoAtual').textContent = data.situacaoAtual || "N/A";
 
+            // Atualizar os últimos registros
+            document.getElementById('ultimaEmergencia').textContent = data.ultimaEmergencia || "N/A";
+            document.getElementById('ultimaConsulta').textContent = data.ultimaConsulta || "N/A";
+            document.getElementById('ultimaColeta').textContent = data.ultimaColeta || "N/A";
+        })
+        .catch(error => console.error("Erro ao carregar dados:", error));
+}
+
+// Chamar a função quando o script é carregado
+document.addEventListener('DOMContentLoaded', carregarDados);
+</script>
 </body>
 </html>

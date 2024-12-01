@@ -443,23 +443,74 @@ fetch(`/api/atendimento/tipo/${tipoAtendimento}`)
     })
     .catch(error => console.error(error));
 
-function carregarDados() {
-    fetch('/api/atendimento/dados')
-        .then(response => response.json())
-        .then(data => {
-            // Atualizar o número atual
-            document.getElementById('numeroAtual').textContent = data.numeroAtual || "N/A";
-
-            // Atualizar a situação atual
-            document.getElementById('situacaoAtual').textContent = data.situacaoAtual || "N/A";
-
-            // Atualizar os últimos registros
-            document.getElementById('ultimaEmergencia').textContent = data.ultimaEmergencia || "N/A";
-            document.getElementById('ultimaConsulta').textContent = data.ultimaConsulta || "N/A";
-            document.getElementById('ultimaColeta').textContent = data.ultimaColeta || "N/A";
+// Função para carregar a fila de pacientes e atualizar a tabela
+function carregarFila() {
+    fetch('/api/atendimento/fila', { method: 'GET' })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error("Erro ao buscar a fila de pacientes.");
+            }
+            return response.json();
         })
-        .catch(error => console.error("Erro ao carregar dados:", error));
+        .then(data => {
+            const tabela = document.getElementById('tabelaFila'); // Seleciona o <tbody>
+            tabela.innerHTML = ''; // Limpa o conteúdo anterior
+
+            // Itera sobre os pacientes e adiciona as linhas na tabela
+            data.forEach(paciente => {
+                const linha = document.createElement('tr'); // Cria uma linha <tr>
+
+                // Coluna número
+                const colunaNumero = document.createElement('td');
+                colunaNumero.className = "border border-blue-300 p-4"; // Adiciona classes para estilização
+                colunaNumero.textContent = paciente.numeroPaciente; // Preenche com o número do paciente
+                linha.appendChild(colunaNumero);
+
+                // Coluna situação
+                const colunaSituacao = document.createElement('td');
+                colunaSituacao.className = "border border-blue-300 p-4 text-blue-600 font-semibold";
+                colunaSituacao.textContent = paciente.situacao || "Em Espera"; // Preenche com a situação
+                linha.appendChild(colunaSituacao);
+
+                // Adiciona a linha à tabela
+                tabela.appendChild(linha);
+            });
+        })
+        .catch(error => {
+            console.error('Erro ao carregar a fila:', error);
+        });
 }
 
-// Chamar a função quando o script é carregado
-document.addEventListener('DOMContentLoaded', carregarDados);
+// Função para chamar o próximo paciente e atualizar a fila
+function chamarProximo() {
+    fetch('/api/atendimento/chamarProximo', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+    })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error("Erro ao chamar próximo paciente");
+            }
+            return response.json();
+        })
+        .then(data => {
+            alert(`Próximo paciente chamado: ${data.numeroPaciente}`);
+            carregarFila(); // Atualiza a tabela após chamar o próximo paciente
+        })
+        .catch(error => {
+            console.error('Erro ao chamar próximo paciente:', error);
+            alert(`Erro: ${error.message}`);
+        });
+}
+
+// Adiciona eventos e carrega dados ao carregar a página
+document.addEventListener("DOMContentLoaded", () => {
+    carregarFila(); // Atualiza a tabela de pacientes ao carregar a página
+
+    const chamarProximoBtn = document.getElementById("chamarProximoBtn");
+    if (chamarProximoBtn) {
+        chamarProximoBtn.addEventListener("click", chamarProximo);
+    }
+});

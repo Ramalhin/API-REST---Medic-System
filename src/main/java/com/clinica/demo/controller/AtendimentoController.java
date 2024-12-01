@@ -3,13 +3,16 @@ package com.clinica.demo.controller;
 import com.clinica.demo.model.Atendimento;
 import com.clinica.demo.model.Paciente;
 import com.clinica.demo.repository.AtendimentoRepository;
+import com.clinica.demo.repository.MedicoRepository;
 import com.clinica.demo.repository.PacienteRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import com.clinica.demo.model.Medico;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Random;
 
@@ -22,6 +25,9 @@ public class AtendimentoController {
 
     @Autowired
     private PacienteRepository pacienteRepository;
+
+    @Autowired
+    private MedicoRepository medicoRepository;
 
     private Random random = new Random();
 
@@ -77,28 +83,33 @@ public class AtendimentoController {
         atendimento.setPrioridade(prioridadeAlta ? 1 : 0);
         atendimentoRepository.save(atendimento);
 
-        // Gera um número de paciente único
-        String numeroPaciente = "P" + String.format("%04d", atendimento.getId()); // ID do atendimento como identificador único
+        // Gerar número de paciente sequencial
+        long totalPacientes = pacienteRepository.count();
+        String numeroPaciente = "P" + String.format("%04d", totalPacientes + 1); // Total + 1 garante sequência correta
 
         // Define uma sala aleatória
         String[] salas = {"Sala 1", "Sala 2", "Sala 3", "Sala 4"};
         String sala = salas[random.nextInt(salas.length)];
 
-        // Seleciona um médico aleatório
-        String nomeMedico = "Nenhum Médico Disponível";
+        // Seleciona um médico aleatório do banco de dados
+        String nomeMedico = medicoRepository.findAll().stream()
+                .findAny()
+                .map(Medico::getNome)
+                .orElse("Nenhum Médico Disponível");
 
         // Cria um novo paciente
         Paciente paciente = new Paciente();
         paciente.setNumeroPaciente(numeroPaciente);
         paciente.setSituacao(tipoAtendimento);
         paciente.setSala(sala);
-        paciente.setPosicaoNaFila(pacienteRepository.count()+1L); // Última posição na fila
+        paciente.setPosicaoNaFila(totalPacientes + 1L); // Última posição na fila
         paciente.setMedico(nomeMedico);
         paciente.setTipoAtendimento(tipoAtendimento);
 
         // Salva o paciente no repositório
         return pacienteRepository.save(paciente);
     }
+
     @PostMapping("/chamarProximo")
     public Paciente chamarProximoPaciente() {
         List<Paciente> fila = pacienteRepository.findAllBySituacaoNot("Atendido", Sort.by(Sort.Direction.ASC, "posicaoNaFila"));
@@ -108,6 +119,10 @@ public class AtendimentoController {
         Paciente proximoPaciente = fila.get(0);
         proximoPaciente.setSituacao("Atendido");
         pacienteRepository.save(proximoPaciente);
+
+        // Ajustar posições após chamar o próximo paciente
+        ajustarPosicoes();
+
         return proximoPaciente;
     }
     @GetMapping("/paciente/{id}")
@@ -125,11 +140,34 @@ public class AtendimentoController {
     public List<Paciente> obterFila() {
         return pacienteRepository.findAll(Sort.by(Sort.Direction.ASC, "posicaoNaFila"));
     }
-    @GetMapping("/tipo/{tipoAtendimento}")
-    public ResponseEntity<List<Atendimento>> listarAtendimentosPorTipo(@PathVariable String tipoAtendimento) {
-        System.out.println("Recebendo requisição para tipo: " + tipoAtendimento);
-        List<Atendimento> atendimentos = atendimentoRepository.findAllByTipoAtendimento(tipoAtendimento);
-        return ResponseEntity.ok(atendimentos);
+    @GetMapping("/pacientes/{tipoAtendimento}")
+    public ResponseEntity<List<Paciente>> listarPacientesPorTipo(@PathVariable String tipoAtendimento) {
+        List<Paciente> pacientes = pacienteRepository.findByTipoAtendimento(tipoAtendimento, Sort.by(Sort.Direction.ASC, "posicaoNaFila"));
+        return ResponseEntity.ok(pacientes);
+    }
+    private void ajustarPosicoes() {
+        List<Paciente> fila = pacienteRepository.findAllBySituacaoNot("Atendido", Sort.by(Sort.Direction.ASC, "posicaoNaFila"));
+        long posicao = 1;
+        for (Paciente paciente : fila) {
+            paciente.setPosicaoNaFila(posicao++);
+            pacienteRepository.save(paciente);
+        }
+    }
+    @GetMapping("/dados")
+    public ResponseEntity<?> obterDadosGerais() {
+        List<String> numerosPacientes = pacienteRepository.findAllNumeroPaciente();
+        String numeroAtual = numerosPacientes.isEmpty() ? "N/A" : numerosPacientes.get(numerosPacientes.size() - 1);
+        Paciente ultimaEmergencia = pacienteRepository.findFirstByTipoAtendimentoOrderByPosicaoNaFilaDesc("emergencia").orElse(null);
+        Paciente ultimaConsulta = pacienteRepository.findFirstByTipoAtendimentoOrderByPosicaoNaFilaDesc("consulta").orElse(null);
+        Paciente ultimaColeta = pacienteRepository.findFirstByTipoAtendimentoOrderByPosicaoNaFilaDesc("coleta").orElse(null);
+
+        return ResponseEntity.ok(Map.of(
+                "numeroAtual", numeroAtual,
+                "situacaoAtual", !numerosPacientes.isEmpty() ? "Em Andamento" : "Nenhuma Situação",
+                "ultimaEmergencia", ultimaEmergencia != null ? ultimaEmergencia.getNumeroPaciente() : "N/A",
+                "ultimaConsulta", ultimaConsulta != null ? ultimaConsulta.getNumeroPaciente() : "N/A",
+                "ultimaColeta", ultimaColeta != null ? ultimaColeta.getNumeroPaciente() : "N/A"
+        ));
     }
 
 
